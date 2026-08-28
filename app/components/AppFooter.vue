@@ -5,11 +5,11 @@ const currentYear = new Date().getFullYear()
 <template>
   <footer class="site-footer">
     <div class="site-container footer-inner">
-      <NuxtLink class="brand footer-brand" to="/" aria-label="EPanel 首页">
+      <NuxtLink class="brand footer-brand" to="/" aria-label="ElementsPanel 首页">
         <span class="brand-mark" aria-hidden="true">E</span>
-        <span>EPanel</span>
+        <span>ElementsPanel</span>
       </NuxtLink>
-      <p class="footer-copy">© {{ currentYear }} EPanel. All rights reserved.</p>
+      <p class="footer-copy">© {{ currentYear }} ElementsPanel. All rights reserved.</p>
     </div>
   </footer>
 </template>

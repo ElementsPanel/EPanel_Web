@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "EPanel_Web",
+      "name": "ElementsPanel_Web",
       "dependencies": {
         "nuxt": "^4.5.2",
         "vue": "^3.5.41",

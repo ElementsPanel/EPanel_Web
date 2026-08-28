@@ -18,9 +18,9 @@ onBeforeUnmount(() => {
 <template>
   <header class="site-header" :class="{ 'is-scrolled': isScrolled }">
     <div class="site-container header-inner">
-      <NuxtLink class="brand" to="/" aria-label="EPanel 首页">
+      <NuxtLink class="brand" to="/" aria-label="ElementsPanel 首页">
         <span class="brand-mark" aria-hidden="true">E</span>
-        <span>EPanel</span>
+        <span>ElementsPanel</span>
       </NuxtLink>
 
       <nav class="header-nav" aria-label="主导航">
