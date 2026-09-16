@@ -1,4 +1,6 @@
+import { convert } from 'asciidoctor'
 import MarkdownIt from 'markdown-it'
+import { stripDocExtension, type DocFormat } from './source'
 
 export interface RenderContext {
   /** 当前正在渲染的文件相对路径，用于解析相对链接 */
@@ -57,7 +59,8 @@ function normalizePath(value: string): string {
 
 /** 把内部链接目标解析成文档 slug，命中不了返回 undefined */
 function lookupSlug(target: string, context: RenderContext): string | undefined {
-  const withoutExtension = target.split('?')[0]!.split('#')[0]!.replace(/\.md(?:own)?$/i, '')
+  // 必须同时剥掉 .md 与 .adoc 等扩展名，否则跨格式的链接永远匹配不上
+  const withoutExtension = stripDocExtension(target.split('?')[0]!.split('#')[0]!)
   return context.slugByFile[normalizePath(withoutExtension).toLowerCase()]
 }
 
@@ -158,4 +161,76 @@ export function renderMarkdown(source: string, context: RenderContext): Rendered
   }
 
   return { html: md.render(source), toc }
+}
+
+/** 还原 HTML 属性里最常见的实体，便于按原样匹配链接目标 */
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, '\'')
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+
+/**
+ * AsciiDoc 走的是 asciidoctor 直接产出 HTML，
+ * 无法像 markdown-it 那样挂钩 token，只能对生成结果的 href 做改写。
+ */
+function rewriteHtmlHrefs(html: string, context: RenderContext): string {
+  return html.replace(/\shref="([^"]*)"/g, (match, rawHref: string) => {
+    const mapped = mapHref(decodeHtmlEntities(rawHref).trim(), context)
+    if (mapped === null) return match
+
+    return ` href="${escapeHtmlAttribute(mapped)}"`
+  })
+}
+
+/** asciidoctor 在 standalone: false 下自动生成 `<h2 id="...">` */
+const HTML_HEADING_RE = /<h([2-4])\b([^>]*)>([\s\S]*?)<\/h\1>/gi
+
+function extractTocFromHtml(html: string): DocsTocEntry[] {
+  const toc: DocsTocEntry[] = []
+
+  for (const match of html.matchAll(HTML_HEADING_RE)) {
+    const id = /id="([^"]*)"/.exec(match[2] ?? '')?.[1]
+    if (!id) continue
+
+    const text = decodeHtmlEntities((match[3] ?? '').replace(/<[^>]*>/g, '')).trim()
+
+    toc.push({ id, text, depth: Number(match[1]) })
+  }
+
+  return toc
+}
+
+async function renderAsciidoc(source: string, context: RenderContext): Promise<RenderedDoc> {
+  const converted = await convert(source, {
+    // 只要正文片段，不要 <html>/<head> 包裹
+    standalone: false,
+    // 文档来自远端仓库，禁用 include 等访问本地资源的能力
+    safe: 'secure',
+    attributes: {
+      // 为小节生成 id，供目录锚点使用
+      sectids: 'true',
+    },
+  })
+
+  const html = typeof converted === 'string' ? converted : ''
+
+  return {
+    html: rewriteHtmlHrefs(html, context),
+    toc: extractTocFromHtml(html),
+  }
+}
+
+/** 按文件格式选择渲染器；asciidoctor 的 convert 是异步的 */
+export function renderDoc(source: string, format: DocFormat, context: RenderContext): Promise<RenderedDoc> | RenderedDoc {
+  if (format === 'asciidoc') return renderAsciidoc(source, context)
+
+  return renderMarkdown(source, context)
 }

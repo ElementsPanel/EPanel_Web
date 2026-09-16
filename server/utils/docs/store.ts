@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { getDocsConfig, getWikiWebBase, type DocsConfig } from './config'
-import { renderMarkdown } from './render'
-import { buildNavTree, extractTitle, flattenTree, readWikiEntries } from './source'
+import { renderDoc } from './render'
+import { buildNavTree, extractTitle, flattenTree, getDocFormat, readWikiEntries, stripDocExtension } from './source'
 import { ensureRepoReady, readHead, readHeadDate } from './sync'
 
 export interface DocsSnapshot {
@@ -47,7 +47,7 @@ async function buildSnapshot(): Promise<DocsSnapshot> {
 
   const slugByFile: Record<string, string> = {}
   for (const entry of entries) {
-    slugByFile[entry.file.replace(/\.md$/i, '').toLowerCase()] = entry.slug
+    slugByFile[stripDocExtension(entry.file).toLowerCase()] = entry.slug
   }
 
   return {
@@ -83,7 +83,7 @@ function buildEditUrl(file: string, config: DocsConfig): string | null {
   const webBase = getWikiWebBase(config.repo)
   if (!webBase) return null
 
-  const pageName = file.replace(/\.md$/i, '').split('/').map(encodeURIComponent).join('/')
+  const pageName = stripDocExtension(file).split('/').map(encodeURIComponent).join('/')
   return `${webBase}/${pageName}/_edit`
 }
 
@@ -98,10 +98,13 @@ export async function getDocPage(slug: string): Promise<DocsPage | null> {
   if (cached) return cached
 
   const meta = snapshot.pages[index]!
+  const format = getDocFormat(meta.file)
+  if (!format) return null
+
   const config = getDocsConfig()
   const raw = await readFile(join(config.dir, meta.file), 'utf8')
-  const { body } = extractTitle(raw)
-  const { html, toc } = renderMarkdown(body, {
+  const { body } = extractTitle(raw, format)
+  const { html, toc } = await renderDoc(body, format, {
     currentFile: meta.file,
     slugByFile: snapshot.slugByFile,
   })

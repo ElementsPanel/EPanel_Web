@@ -2,14 +2,48 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join, relative, sep } from 'node:path'
 import type { DocsConfig } from './config'
 
+/**
+ * GitHub wiki 允许同一个仓库里混用多种标记语言，
+ * 因此支持的扩展名按格式归类。
+ */
+export type DocFormat = 'markdown' | 'asciidoc'
+
+const DOC_EXTENSIONS: Record<string, DocFormat> = {
+  '.md': 'markdown',
+  '.markdown': 'markdown',
+  '.mdown': 'markdown',
+  '.mkdn': 'markdown',
+  '.adoc': 'asciidoc',
+  '.asciidoc': 'asciidoc',
+  '.asc': 'asciidoc',
+}
+
 /** GitHub wiki 的保留文件，不作为文档页面 */
 function isReserved(name: string): boolean {
   return name.startsWith('_') || name.startsWith('.')
 }
 
-/** 位于根目录的 Home.md 对应文档首页 */
+/** 判断文件是否属于支持的文档格式 */
+export function getDocFormat(file: string): DocFormat | null {
+  const dot = file.lastIndexOf('.')
+  if (dot === -1) return null
+
+  return DOC_EXTENSIONS[file.slice(dot).toLowerCase()] ?? null
+}
+
+/** 去掉文档扩展名，非文档文件原样返回 */
+export function stripDocExtension(file: string): string {
+  if (!getDocFormat(file)) return file
+
+  return file.slice(0, file.lastIndexOf('.'))
+}
+
+/** 位于根目录的 Home.* 对应文档首页 */
 function isHomeRoot(file: string): boolean {
-  return file.toLowerCase() === 'home.md'
+  if (getDocFormat(file) === null) return false
+  if (file.includes('/')) return false
+
+  return stripDocExtension(file).toLowerCase() === 'home'
 }
 
 /**
@@ -33,41 +67,53 @@ export function slugifySegment(segment: string): string {
 export function fileToSlug(file: string): string {
   if (isHomeRoot(file)) return ''
 
-  return file
-    .replace(/\.md$/i, '')
+  return stripDocExtension(file)
     .split('/')
     .map(slugifySegment)
     .join('/')
 }
 
-/** 去掉可能存在 YAML frontmatter */
+/** 去掉可能存在 YAML frontmatter（Markdown 专有） */
 function stripFrontmatter(source: string): string {
   const content = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source
   return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
 }
 
 /**
- * 取出正文首行的 H1 作为标题，并把它从正文中移除，
+ * 取出正文首个一级标题作为标题，并把它从正文中移除，
  * 由页面单独渲染标题，避免重复。
+ * Markdown 是 `# 标题`，AsciiDoc 是 `= 标题`。
  */
-export function extractTitle(source: string): { title: string | null, body: string } {
-  const lines = stripFrontmatter(source).split(/\r?\n/)
-  let consumed = 0
+export function extractTitle(source: string, format: DocFormat): { title: string | null, body: string } {
+  const lines = (format === 'markdown' ? stripFrontmatter(source) : source).split(/\r?\n/)
+  const pattern = format === 'asciidoc' ? /^=\s+(.+?)\s*$/ : /^#\s+(.+?)\s*#*$/
+
+  let title: string | null = null
+  let titleIndex = -1
 
   for (const [index, line] of lines.entries()) {
-    if (line.trim() === '') {
-      consumed = index + 1
-      continue
+    const trimmed = line.trim()
+
+    // 空行，以及 AsciiDoc 开头的属性行与注释，都不算作正文首行
+    if (trimmed === '') continue
+    if (format === 'asciidoc' && (trimmed.startsWith(':') || trimmed.startsWith('//'))) continue
+
+    const heading = pattern.exec(line)
+    if (heading) {
+      title = heading[1]!.trim()
+      titleIndex = index
     }
 
-    const heading = /^#\s+(.+?)\s*#*$/.exec(line)
-    consumed = index + 1
-    return heading
-      ? { title: heading[1]!.trim(), body: lines.slice(consumed).join('\n') }
-      : { title: null, body: lines.slice(consumed).join('\n') }
+    // 只有首个有效行可能是文档标题，之后不再寻找
+    break
   }
 
-  return { title: null, body: '' }
+  // 只摘掉标题行本身，其余内容（含 AsciiDoc 属性行）原样保留
+  const body = titleIndex === -1
+    ? lines.join('\n')
+    : [...lines.slice(0, titleIndex), ...lines.slice(titleIndex + 1)].join('\n')
+
+  return { title, body }
 }
 
 /** 标题缺失时的兜底：`getting-started` → `Getting started` */
@@ -76,8 +122,8 @@ export function humanize(name: string): string {
   return words === '' ? name : words.replace(/^\w/, char => char.toUpperCase())
 }
 
-/** 递归收集仓库中的 .md 文件，忽略 `_` 前缀目录/文件与隐藏目录 */
-export async function collectMarkdownFiles(root: string): Promise<string[]> {
+/** 递归收集受支持的文档文件，忽略 `_` 前缀目录/文件与隐藏目录 */
+export async function collectDocFiles(root: string): Promise<string[]> {
   const files: string[] = []
 
   async function walk(dir: string): Promise<void> {
@@ -89,7 +135,7 @@ export async function collectMarkdownFiles(root: string): Promise<string[]> {
       if (entry.isDirectory()) {
         await walk(join(dir, entry.name))
       }
-      else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
+      else if (entry.isFile() && getDocFormat(entry.name) !== null) {
         files.push(relative(root, join(dir, entry.name)).split(sep).join('/'))
       }
     }
@@ -103,22 +149,27 @@ export interface DocsSourceEntry {
   slug: string
   file: string
   title: string
+  format: DocFormat
 }
 
 /** 扫描克隆目录，产出带标题的文档清单 */
 export async function readWikiEntries(config: DocsConfig): Promise<DocsSourceEntry[]> {
-  const files = await collectMarkdownFiles(config.dir)
+  const files = await collectDocFiles(config.dir)
   const entries: DocsSourceEntry[] = []
 
   for (const file of files) {
+    const format = getDocFormat(file)
+    if (!format) continue
+
     const raw = await readFile(join(config.dir, file), 'utf8')
-    const { title } = extractTitle(raw)
-    const slug = fileToSlug(file)
+    const { title } = extractTitle(raw, format)
+    const fallback = humanize(stripDocExtension(file).split('/').pop() ?? file)
 
     entries.push({
-      slug,
+      slug: fileToSlug(file),
       file,
-      title: title ?? humanize(file.replace(/\.md$/i, '').split('/').pop() ?? file),
+      title: title ?? fallback,
+      format,
     })
   }
 
@@ -139,13 +190,13 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
   const root: DocsNavNode[] = []
 
   for (const entry of entries) {
-    // 首页（Home.md）作为根级入口挂在最前
+    // 首页（Home.*）作为根级入口挂在最前
     if (entry.slug === '') {
       root.push({ slug: '', title: entry.title, file: entry.file, children: [] })
       continue
     }
 
-    const fileParts = entry.file.replace(/\.md$/i, '').split('/')
+    const fileParts = stripDocExtension(entry.file).split('/')
     const slugParts = entry.slug.split('/')
     let siblings = root
 
