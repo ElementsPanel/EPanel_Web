@@ -10,6 +10,7 @@
 
       <nav class="header-nav" aria-label="主导航">
         <v-btn to="/" variant="text">首页</v-btn>
+        <v-btn to="/docs" variant="text">文档</v-btn>
       </nav>
     </div>
   </v-app-bar>
