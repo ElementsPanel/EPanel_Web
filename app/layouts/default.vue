@@ -1,9 +1,9 @@
 <template>
-  <div class="site-shell">
+  <v-app>
     <AppHeader />
     <main class="site-main">
       <slot />
     </main>
     <AppFooter />
-  </div>
+  </v-app>
 </template>

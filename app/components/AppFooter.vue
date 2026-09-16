@@ -3,13 +3,15 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <template>
-  <footer class="site-footer">
+  <v-footer class="site-footer">
     <div class="site-container footer-inner">
-      <NuxtLink class="brand footer-brand" to="/" aria-label="ElementsPanel 首页">
-        <span class="brand-mark" aria-hidden="true">E</span>
-        <span>ElementsPanel</span>
+      <NuxtLink class="brand" to="/" aria-label="ElementsPanel 首页">
+        <v-avatar color="primary" rounded="lg" size="28">
+          <span class="brand-mark-letter">E</span>
+        </v-avatar>
+        <span class="brand-title text-title-medium">ElementsPanel</span>
       </NuxtLink>
-      <p class="footer-copy">© {{ currentYear }} ElementsPanel. All rights reserved.</p>
+      <p class="footer-copy text-body-small">© {{ currentYear }} ElementsPanel. All rights reserved.</p>
     </div>
-  </footer>
+  </v-footer>
 </template>
