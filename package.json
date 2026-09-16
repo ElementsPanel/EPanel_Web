@@ -22,3 +22,4 @@
     "@types/markdown-it": "^14.1.2",
     "vite-plugin-vuetify": "^2.1.3"
   }
+}
