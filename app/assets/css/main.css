@@ -79,6 +79,10 @@ a {
   min-width: 104px;
 }
 
+.site-header.v-toolbar {
+  background-color: var(--surface);
+}
+
 /* v-footer 自带 padding: 8px 16px 与 flex: 1 1 auto，
    前者会破坏与正文的 1180px 对齐，后者会抢走 .site-main 的伸展空间 */
 .site-footer.v-footer {

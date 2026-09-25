@@ -21,7 +21,7 @@ const labels = computed(() => language.value === 'zh'
 </script>
 
 <template>
-  <v-app-bar class="site-header" :elevation="0">
+  <v-app-bar class="site-header" color="surface" :elevation="0">
     <div class="site-container header-inner">
       <NuxtLink class="brand" to="/" :aria-label="labels.homeAria">
         <v-avatar color="primary" rounded="lg" size="32">
