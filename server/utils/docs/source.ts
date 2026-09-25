@@ -116,6 +116,23 @@ export function extractTitle(source: string, format: DocFormat): { title: string
   return { title, body }
 }
 
+/**
+ * 读取文档显式声明的导航顺序。
+ * Markdown 使用 YAML frontmatter，AsciiDoc 使用文档属性。
+ */
+export function extractNavOrder(source: string, format: DocFormat): number | undefined {
+  const content = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source
+  const metadata = format === 'markdown'
+    ? /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content)?.[1] ?? ''
+    : content
+  const pattern = format === 'markdown'
+    ? /^(?:nav[-_]order|page[-_]order|order)\s*:\s*["']?(\d+)["']?\s*$/im
+    : /^:(?:nav-order|page-order|order):\s*(\d+)\s*$/im
+  const value = Number(pattern.exec(metadata)?.[1])
+
+  return Number.isSafeInteger(value) && value >= 0 ? value : undefined
+}
+
 /** 标题缺失时的兜底：`getting-started` → `Getting started` */
 export function humanize(name: string): string {
   const words = name.replace(/[-_]+/g, ' ').trim()
@@ -149,6 +166,7 @@ export interface DocsSourceEntry {
   slug: string
   file: string
   title: string
+  order?: number
   format: DocFormat
 }
 
@@ -169,6 +187,7 @@ export async function readWikiEntries(config: DocsConfig): Promise<DocsSourceEnt
       slug: fileToSlug(file),
       file,
       title: title ?? fallback,
+      order: extractNavOrder(raw, format),
       format,
     })
   }
@@ -176,8 +195,11 @@ export async function readWikiEntries(config: DocsConfig): Promise<DocsSourceEnt
   return entries
 }
 
-/** 内容排序：目录在前，其余按标题本地化排序 */
+/** 内容排序：手动顺序优先，未声明时再按目录和标题稳定排序。 */
 function compareNodes(a: DocsNavNode, b: DocsNavNode): number {
+  const orderDiff = (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER)
+  if (orderDiff !== 0) return orderDiff
+
   const aIsFolder = (a.children.length > 0)
   const bIsFolder = (b.children.length > 0)
   if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1
@@ -190,9 +212,9 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
   const root: DocsNavNode[] = []
 
   for (const entry of entries) {
-    // 首页（Home.*）作为根级入口挂在最前
+    // 位于根目录的 Home.* 保留为根级入口。
     if (entry.slug === '') {
-      root.push({ slug: '', title: entry.title, file: entry.file, children: [] })
+      root.push({ slug: '', title: entry.title, order: entry.order, file: entry.file, children: [] })
       continue
     }
 
@@ -209,6 +231,7 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
         node = {
           slug: nodeSlug,
           title: isLeaf ? entry.title : humanize(fileParts[index]!),
+          order: entry.order,
           file: isLeaf ? entry.file : '',
           children: [],
         }
@@ -216,6 +239,11 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
       }
       else if (isLeaf) {
         node.title = entry.title
+        node.order = entry.order
+      }
+      else if (entry.order !== undefined && (node.order === undefined || entry.order < node.order)) {
+        // 目录沿用其最早子页顺序，使嵌套导航也能手动排列。
+        node.order = entry.order
       }
 
       siblings = node.children

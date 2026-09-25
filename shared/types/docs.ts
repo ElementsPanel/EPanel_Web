@@ -23,6 +23,8 @@ export interface DocsPageMeta {
 export interface DocsNavNode {
   slug: string
   title: string
+  /** 文档内声明的手动导航顺序，数字越小越靠前 */
+  order?: number
   /** 叶子节点对应的仓库文件路径，目录节点为空字符串 */
   file: string
   children: DocsNavNode[]
