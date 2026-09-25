@@ -81,6 +81,11 @@ a {
 
 .site-header.v-toolbar {
   background-color: var(--surface);
+  transition: background-color 200ms ease;
+}
+
+.site-header.v-toolbar.is-transparent {
+  background-color: transparent;
 }
 
 /* v-footer 自带 padding: 8px 16px 与 flex: 1 1 auto，
@@ -307,22 +312,53 @@ a {
   gap: 24px;
 }
 
-.docs-pager-link {
+.docs-pager-link.v-btn {
   display: flex;
+  width: 100%;
+  height: auto;
+  min-height: 76px;
   padding: 18px 22px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  flex-direction: row;
+  justify-content: flex-start;
+  text-transform: none;
+  white-space: normal;
+}
+
+.docs-pager-link.v-btn .v-btn__content {
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.docs-pager-link.v-btn .v-btn__prepend {
+  margin-inline: 0 8px;
+}
+
+.docs-pager-link.v-btn .v-btn__append {
+  margin-inline: 8px 0;
+}
+
+.docs-pager-copy {
+  display: flex;
+  min-width: 0;
   flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
-  transition: border-color 0.15s ease;
+  text-align: left;
+  white-space: normal;
 }
 
-.docs-pager-link:hover {
-  border-color: var(--accent);
+.docs-pager-link.v-btn.is-next {
+  justify-content: flex-end;
 }
 
-.docs-pager-link.is-next {
+.docs-pager-link.v-btn.is-next .docs-pager-copy {
+  align-items: flex-end;
   text-align: right;
+}
+
+.docs-pager-link.v-btn.is-next .v-btn__content {
+  justify-content: flex-end;
 }
 
 .docs-pager-label {
@@ -506,13 +542,23 @@ a {
     margin-top: 48px;
   }
 
-  .docs-pager-link.is-next {
+  .docs-pager-link.v-btn.is-next {
+    justify-content: flex-start;
+  }
+
+  .docs-pager-link.v-btn.is-next .v-btn__content {
+    justify-content: flex-start;
+  }
+
+  .docs-pager-link.v-btn.is-next .docs-pager-copy {
+    align-items: flex-start;
     text-align: left;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .docs-pager-link {
+  .docs-pager-link.v-btn::before,
+  .docs-pager-link.v-btn::after {
     transition: none;
   }
 }
@@ -589,6 +635,10 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .site-header.v-toolbar {
+    transition: none;
+  }
+
   .product-preview {
     transform: none;
     will-change: auto;

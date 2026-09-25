@@ -1,5 +1,26 @@
 <script setup lang="ts">
+const route = useRoute()
 const { language, toggleLanguage } = useSiteLanguage()
+const isScrolled = ref(false)
+const isTransparent = computed(() => route.path === '/' && !isScrolled.value)
+
+function updateScrollState(): void {
+  isScrolled.value = window.scrollY > 0
+}
+
+onMounted(() => {
+  updateScrollState()
+  window.addEventListener('scroll', updateScrollState, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateScrollState)
+})
+
+watch(() => route.path, async () => {
+  await nextTick()
+  updateScrollState()
+})
 
 const labels = computed(() => language.value === 'zh'
   ? {
@@ -21,7 +42,12 @@ const labels = computed(() => language.value === 'zh'
 </script>
 
 <template>
-  <v-app-bar class="site-header" color="surface" :elevation="0">
+  <v-app-bar
+    class="site-header"
+    :class="{ 'is-transparent': isTransparent }"
+    :color="isTransparent ? 'transparent' : 'surface'"
+    :elevation="0"
+  >
     <div class="site-container header-inner">
       <NuxtLink class="brand" to="/" :aria-label="labels.homeAria">
         <v-avatar color="primary" rounded="lg" size="32">

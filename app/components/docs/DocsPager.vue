@@ -12,15 +12,31 @@ defineProps<{
 
 <template>
   <nav v-if="prev || next" class="docs-pager" :aria-label="label">
-    <NuxtLink v-if="prev" class="docs-pager-link" :to="docsPath(prev.slug)">
-      <span class="docs-pager-label">{{ previousLabel }}</span>
-      <span class="docs-pager-title">{{ prev.title }}</span>
-    </NuxtLink>
+    <v-btn
+      v-if="prev"
+      class="docs-pager-link"
+      :to="docsPath(prev.slug)"
+      variant="flat"
+      prepend-icon="mdi-arrow-left"
+    >
+      <span class="docs-pager-copy">
+        <span class="docs-pager-label">{{ previousLabel }}</span>
+        <span class="docs-pager-title">{{ prev.title }}</span>
+      </span>
+    </v-btn>
     <span v-else class="docs-pager-spacer" />
 
-    <NuxtLink v-if="next" class="docs-pager-link is-next" :to="docsPath(next.slug)">
-      <span class="docs-pager-label">{{ nextLabel }}</span>
-      <span class="docs-pager-title">{{ next.title }}</span>
-    </NuxtLink>
+    <v-btn
+      v-if="next"
+      class="docs-pager-link is-next"
+      :to="docsPath(next.slug)"
+      variant="flat"
+      append-icon="mdi-arrow-right"
+    >
+      <span class="docs-pager-copy">
+        <span class="docs-pager-label">{{ nextLabel }}</span>
+        <span class="docs-pager-title">{{ next.title }}</span>
+      </span>
+    </v-btn>
   </nav>
 </template>
