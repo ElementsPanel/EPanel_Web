@@ -1,39 +1,52 @@
 <script setup lang="ts">
-// 递归渲染导航树，显式自引用保证在任何解析模式下都能找到组件
-import DocsNavList from './DocsNavList.vue'
+import { docsPath } from '#shared/utils/docs'
 
 const props = defineProps<{
   nodes: DocsNavNode[]
+  activeSlug: string
+  label: string
 }>()
 
-const route = useRoute()
-
-function hrefFor(slug: string): string {
-  return slug === '' ? '/docs' : `/docs/${slug}`
+interface NavListItem {
+  title: string
+  value: string
+  props?: { to: string, exact: boolean, active: boolean }
+  children?: NavListItem[]
 }
 
-// 前缀匹配会让 /docs 在子页面上也高亮，这里按完整路径精确判断
-function isActive(slug: string): boolean {
-  return route.path.replace(/\/$/, '') === hrefFor(slug)
+function toListItems(nodes: DocsNavNode[]): NavListItem[] {
+  return nodes.map(node => ({
+    title: node.title,
+    value: node.slug,
+    ...(node.children.length > 0
+      ? { children: toListItems(node.children) }
+      : { props: { to: docsPath(node.slug), exact: true, active: node.slug === props.activeSlug } }),
+  }))
 }
+
+const items = computed(() => toListItems(props.nodes))
+const opened = ref<string[]>([])
+
+// 打开深链接所属的分组，随后仍可由用户自由折叠。
+watch(() => props.activeSlug, (slug) => {
+  const parts = slug.split('/')
+  opened.value = parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join('/'))
+}, { immediate: true })
 </script>
 
 <template>
-  <ul class="docs-nav-list">
-    <li v-for="node in props.nodes" :key="node.slug" class="docs-nav-item">
-      <template v-if="node.children.length > 0">
-        <span class="docs-nav-group">{{ node.title }}</span>
-        <DocsNavList :nodes="node.children" />
-      </template>
-
-      <NuxtLink
-        v-else
-        class="docs-nav-link"
-        :class="{ 'is-active': isActive(node.slug) }"
-        :to="hrefFor(node.slug)"
-      >
-        {{ node.title }}
-      </NuxtLink>
-    </li>
-  </ul>
+  <!-- Vuetify 根据 children 递归生成 v-list-group / v-list-item。 -->
+  <v-list
+    v-model:opened="opened"
+    class="docs-nav-list"
+    :items="items"
+    :aria-label="label"
+    tag="nav"
+    color="primary"
+    bg-color="transparent"
+    density="compact"
+    open-strategy="multiple"
+    nav
+    slim
+  />
 </template>

@@ -61,9 +61,22 @@ a {
   font-weight: 700;
 }
 
+.header-actions,
 .header-nav {
   display: flex;
   align-items: center;
+}
+
+.header-actions {
+  gap: 12px;
+}
+
+.header-nav {
+  gap: 8px;
+}
+
+.language-toggle.v-btn {
+  min-width: 104px;
 }
 
 /* v-footer 自带 padding: 8px 16px 与 flex: 1 1 auto，
@@ -241,7 +254,7 @@ a {
 
 .docs-shell {
   display: grid;
-  padding-block: 56px 96px;
+  padding-block: 96px;
   grid-template-columns: 248px minmax(0, 1fr) auto;
   gap: 56px;
   align-items: start;
@@ -261,48 +274,14 @@ a {
   font-size: 14px;
 }
 
-.docs-nav-list {
-  margin: 0;
+.docs-nav-list.v-list {
   padding: 0;
-  list-style: none;
 }
 
-.docs-nav-item {
-  margin-top: 4px;
-}
-
-.docs-nav-group {
-  display: block;
-  margin-top: 22px;
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.docs-nav-link {
-  display: block;
-  padding: 6px 0 6px 12px;
-  border-left: 2px solid transparent;
-  color: var(--muted);
-  font-size: 14px;
+.docs-nav-list .v-list-item-title,
+.docs-toc .v-list-item-title {
+  white-space: normal;
   line-height: 1.5;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.docs-nav-link:hover {
-  color: var(--ink);
-}
-
-.docs-nav-link.is-active {
-  border-left-color: var(--accent);
-  color: var(--accent-dark);
-  font-weight: 500;
-}
-
-/* 嵌套层级缩进 */
-.docs-nav-list .docs-nav-list {
-  padding-left: 12px;
 }
 
 .docs-main {
@@ -325,6 +304,7 @@ a {
 
 .docs-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   margin-top: 18px;
   gap: 20px;
@@ -408,45 +388,8 @@ a {
   overflow-y: auto;
 }
 
-.docs-toc-title {
-  margin: 0 0 14px;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.docs-toc-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.docs-toc-list li {
-  margin-bottom: 2px;
-}
-
-.docs-toc-depth-3 {
-  padding-left: 12px;
-}
-
-.docs-toc-depth-4,
-.docs-toc-depth-5,
-.docs-toc-depth-6 {
-  padding-left: 24px;
-}
-
-.docs-toc-link {
-  display: block;
-  padding: 5px 0;
-  border-left: 2px solid transparent;
-  color: var(--muted);
+.docs-toc .v-list-item-title {
   font-size: 13px;
-  line-height: 1.45;
-}
-
-.docs-toc-link:hover {
-  color: var(--accent-dark);
 }
 
 /* ----------------------- Markdown 正文（doc-body） ----------------------- */
@@ -584,7 +527,7 @@ a {
 @media (max-width: 900px) {
   .docs-shell {
     display: block;
-    padding-block: 32px 64px;
+    padding-block: 96px 64px;
   }
 
   .docs-sidebar {
@@ -610,7 +553,6 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .docs-nav-link,
   .docs-pager-link {
     transition: none;
   }
@@ -619,6 +561,24 @@ a {
 @media (max-width: 700px) {
   .site-container {
     width: min(100% - 32px, 1180px);
+  }
+
+  .header-actions {
+    gap: 2px;
+  }
+
+  .header-nav {
+    gap: 2px;
+  }
+
+  .header-nav .v-btn {
+    min-width: 52px;
+    padding-inline: 8px;
+  }
+
+  .language-toggle.v-btn {
+    min-width: 72px;
+    padding-inline: 8px;
   }
 
   .hero-inner {
@@ -672,6 +632,12 @@ a {
     flex-direction: column;
     justify-content: center;
     gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .site-header .brand-title {
+    display: none;
   }
 }
 

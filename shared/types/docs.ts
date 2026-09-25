@@ -2,6 +2,9 @@
  * 文档站的数据契约，服务端与前端共用（Nuxt 会自动从 shared/types 导入）。
  */
 
+/** Wiki 中已有的文档语言目录 */
+export type DocsLanguage = 'zh' | 'en'
+
 /** 目录条目 */
 export interface DocsTocEntry {
   id: string

@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { getDocsLanguage } from '../../../shared/utils/docs'
 import { getDocsConfig, getWikiWebBase, type DocsConfig } from './config'
 import { renderDoc } from './render'
 import { buildNavTree, extractTitle, flattenTree, getDocFormat, readWikiEntries, stripDocExtension } from './source'
@@ -109,6 +110,11 @@ export async function getDocPage(slug: string): Promise<DocsPage | null> {
     slugByFile: snapshot.slugByFile,
   })
 
+  // 阅读顺序只包含当前语言，避免最后一篇跳进另一种语言的目录。
+  const language = getDocsLanguage(meta.slug)
+  const localizedPages = snapshot.pages.filter(page => getDocsLanguage(page.slug) === language)
+  const localizedIndex = localizedPages.findIndex(page => page.slug === slug)
+
   const page: DocsPage = {
     slug: meta.slug,
     file: meta.file,
@@ -116,8 +122,8 @@ export async function getDocPage(slug: string): Promise<DocsPage | null> {
     html,
     toc,
     editUrl: buildEditUrl(meta.file, config) ?? '',
-    prev: snapshot.pages[index - 1] ?? null,
-    next: snapshot.pages[index + 1] ?? null,
+    prev: localizedPages[localizedIndex - 1] ?? null,
+    next: localizedPages[localizedIndex + 1] ?? null,
     updatedAt: snapshot.updatedAt,
   }
 
