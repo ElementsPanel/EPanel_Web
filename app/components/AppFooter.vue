@@ -17,10 +17,13 @@ const labels = computed(() => language.value === 'zh'
   <v-footer class="site-footer">
     <div class="site-container footer-inner">
       <NuxtLink class="brand" to="/" :aria-label="labels.homeAria">
-        <v-avatar color="primary" rounded="lg" size="28">
-          <span class="brand-mark-letter">E</span>
-        </v-avatar>
-        <span class="brand-title text-title-medium">ElementsPanel</span>
+        <img
+          class="brand-logo"
+          src="/images/elements-panel-logo.svg"
+          alt=""
+          width="32"
+          height="32"
+        >
       </NuxtLink>
       <p class="footer-copy text-body-small">{{ labels.copyright }}</p>
     </div>
