@@ -50,10 +50,13 @@ const labels = computed(() => language.value === 'zh'
   >
     <div class="site-container header-inner">
       <NuxtLink class="brand" to="/" :aria-label="labels.homeAria">
-        <v-avatar color="primary" rounded="lg" size="32">
-          <span class="brand-mark-letter">E</span>
-        </v-avatar>
-        <span class="brand-title text-title-large">ElementsPanel</span>
+        <img
+          class="brand-logo"
+          src="/images/elements-panel-logo.svg"
+          alt=""
+          width="32"
+          height="32"
+        >
       </NuxtLink>
 
       <div class="header-actions">
