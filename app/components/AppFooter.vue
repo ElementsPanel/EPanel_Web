@@ -5,11 +5,11 @@ const { language } = useSiteLanguage()
 const labels = computed(() => language.value === 'zh'
   ? {
       homeAria: 'ElementsPanel 首页',
-      copyright: `© ${currentYear} ElementsPanel。保留所有权利。`,
+      copyright: `© ${currentYear} ElementsPanel`,
     }
   : {
       homeAria: 'ElementsPanel home',
-      copyright: `© ${currentYear} ElementsPanel. All rights reserved.`,
+      copyright: `© ${currentYear} ElementsPanel`,
     })
 </script>
 
