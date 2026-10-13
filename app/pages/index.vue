@@ -4,23 +4,17 @@ const { language } = useSiteLanguage()
 const copy = computed(() => language.value === 'zh'
   ? {
       description: 'ElementsPanel 官方网站',
-      wordmark: {
-        src: '/images/elements-panel-wordmark-zh.svg',
-        alt: '元素面板',
-        width: 2231,
-        height: 736,
-      },
+      heroTitle: '元素面板',
+      heroIntroduction: '以插件为核心，让每个页面、功能和集成都能自由组合。',
+      dashboardAlt: 'ElementsPanel 数据监控页面，展示实例、节点与系统资源概览',
       heading: '一切皆插件',
       introduction: '每个页面、每项功能和每个集成都以插件形式存在。插件按需组合，共同构成完整的 ElementsPanel。',
     }
   : {
       description: 'The official ElementsPanel website',
-      wordmark: {
-        src: '/images/elements-panel-wordmark.svg',
-        alt: 'ElementsPanel',
-        width: 2231,
-        height: 737,
-      },
+      heroTitle: 'ElementsPanel',
+      heroIntroduction: 'Built around plugins. Freely combine every page, feature, and integration.',
+      dashboardAlt: 'ElementsPanel dashboard showing instances, nodes, and system resources',
       heading: 'Everything is a plugin',
       introduction: 'Every page, feature, and integration exists as a plugin. Combine only the plugins you need to create a complete ElementsPanel experience.',
     })
@@ -32,15 +26,23 @@ useSeoMeta({
 </script>
 
 <template>
-  <section class="hero">
-    <img
-      class="hero-wordmark"
-      :src="copy.wordmark.src"
-      :alt="copy.wordmark.alt"
-      :width="copy.wordmark.width"
-      :height="copy.wordmark.height"
-      fetchpriority="high"
-    >
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="site-container hero-copy">
+      <h1 id="hero-title">{{ copy.heroTitle }}</h1>
+      <p class="hero-description">{{ copy.heroIntroduction }}</p>
+    </div>
+
+    <div class="site-container hero-preview">
+      <img
+        class="hero-dashboard"
+        src="/images/elements-panel-dashboard.png"
+        :alt="copy.dashboardAlt"
+        width="2560"
+        height="1519"
+        fetchpriority="high"
+        decoding="async"
+      >
+    </div>
   </section>
 
   <section class="plugin-section">
