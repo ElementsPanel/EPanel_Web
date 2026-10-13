@@ -26,37 +26,39 @@ useSeoMeta({
 </script>
 
 <template>
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="site-container hero-copy">
-      <h1 id="hero-title">{{ copy.heroTitle }}</h1>
-      <p class="hero-description">{{ copy.heroIntroduction }}</p>
-    </div>
-
-    <div class="site-container hero-preview">
-      <img
-        class="hero-dashboard"
-        src="/images/elements-panel-dashboard.png"
-        :alt="copy.dashboardAlt"
-        width="2560"
-        height="1519"
-        fetchpriority="high"
-        decoding="async"
-      >
-    </div>
-  </section>
-
-  <section class="plugin-section">
-    <div class="site-container plugin-inner">
-      <v-icon
-        class="plugin-icon"
-        icon="mdi-puzzle-outline"
-        aria-hidden="true"
-      />
-
-      <div class="plugin-content">
-        <h2>{{ copy.heading }}</h2>
-        <p class="plugin-description">{{ copy.introduction }}</p>
+  <div class="home-page">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="site-container hero-copy">
+        <h1 id="hero-title">{{ copy.heroTitle }}</h1>
+        <p class="hero-description">{{ copy.heroIntroduction }}</p>
       </div>
-    </div>
-  </section>
+
+      <div class="site-container hero-preview">
+        <img
+          class="hero-dashboard"
+          src="/images/elements-panel-dashboard.png"
+          :alt="copy.dashboardAlt"
+          width="2560"
+          height="1519"
+          fetchpriority="high"
+          decoding="async"
+        >
+      </div>
+    </section>
+
+    <section class="plugin-section">
+      <div class="site-container plugin-inner">
+        <v-icon
+          class="plugin-icon"
+          icon="mdi-puzzle-outline"
+          aria-hidden="true"
+        />
+
+        <div class="plugin-content">
+          <h2>{{ copy.heading }}</h2>
+          <p class="plugin-description">{{ copy.introduction }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>

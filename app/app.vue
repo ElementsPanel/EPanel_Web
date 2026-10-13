@@ -9,6 +9,7 @@ useHead(() => ({
 </script>
 
 <template>
+  <NuxtLoadingIndicator color="#2982FF" :throttle="0" />
   <NuxtRouteAnnouncer />
   <NuxtLayout>
     <NuxtPage />

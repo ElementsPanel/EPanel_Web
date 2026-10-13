@@ -102,6 +102,16 @@ a {
   flex-direction: column;
 }
 
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 280ms ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
 .hero {
   display: flex;
   width: 100%;
@@ -676,6 +686,11 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .site-header.v-toolbar {
+    transition: none;
+  }
+
+  .page-enter-active,
+  .page-leave-active {
     transition: none;
   }
 
