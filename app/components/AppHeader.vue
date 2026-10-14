@@ -68,7 +68,7 @@ const labels = computed(() => language.value === 'zh'
         <v-btn
           class="language-toggle"
           prepend-icon="mdi-translate"
-          variant="outlined"
+          variant="flat"
           size="small"
           :aria-label="labels.switchLanguage"
           :title="labels.switchLanguage"
