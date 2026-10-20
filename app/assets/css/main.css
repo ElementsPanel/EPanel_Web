@@ -92,7 +92,6 @@ a {
   min-height: clamp(240px, 40vw, 480px);
   padding: 0;
   overflow: hidden;
-  border-top: 1px solid var(--line);
   background: var(--paper);
 }
 
@@ -187,7 +186,6 @@ a {
 }
 
 .plugin-section {
-  border-top: 1px solid var(--line);
   background: var(--surface);
 }
 
