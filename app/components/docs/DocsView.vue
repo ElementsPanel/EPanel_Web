@@ -106,45 +106,42 @@ function formatUpdatedAt(value: string): string {
       </aside>
 
       <div class="docs-main">
-        <!-- 复用全局 page 过渡样式，仅让文档内容区随 slug 切换淡入淡出 -->
-        <Transition name="page" mode="out-in">
-          <article v-if="page" :key="pageSlug" class="docs-article">
-            <header class="docs-header">
-              <h1 class="docs-title">{{ page.title }}</h1>
+        <article v-if="page" class="docs-article">
+          <header class="docs-header">
+            <h1 class="docs-title">{{ page.title }}</h1>
 
-              <div class="docs-meta">
-                <span v-if="formatUpdatedAt(page.updatedAt)" class="docs-updated">
-                  {{ labels.updated }} {{ formatUpdatedAt(page.updatedAt) }}
-                </span>
-                <a
-                  v-if="page.editUrl"
-                  class="docs-edit-link"
-                  :href="page.editUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ labels.edit }}
-                </a>
-              </div>
-            </header>
+            <div class="docs-meta">
+              <span v-if="formatUpdatedAt(page.updatedAt)" class="docs-updated">
+                {{ labels.updated }} {{ formatUpdatedAt(page.updatedAt) }}
+              </span>
+              <a
+                v-if="page.editUrl"
+                class="docs-edit-link"
+                :href="page.editUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ labels.edit }}
+              </a>
+            </div>
+          </header>
 
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="doc-body" v-html="page.html" />
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div class="doc-body" v-html="page.html" />
 
-            <DocsPager
-              :prev="page.prev"
-              :next="page.next"
-              :label="labels.pager"
-              :previous-label="labels.previous"
-              :next-label="labels.next"
-            />
-          </article>
+          <DocsPager
+            :prev="page.prev"
+            :next="page.next"
+            :label="labels.pager"
+            :previous-label="labels.previous"
+            :next-label="labels.next"
+          />
+        </article>
 
-          <div v-else :key="pageSlug" class="docs-empty">
-            <h1>{{ labels.unavailable }}</h1>
-            <p>{{ labels.unavailableDescription }}</p>
-          </div>
-        </Transition>
+        <div v-else class="docs-empty">
+          <h1>{{ labels.unavailable }}</h1>
+          <p>{{ labels.unavailableDescription }}</p>
+        </div>
       </div>
 
       <DocsToc v-if="page && page.toc.length > 0" :toc="page.toc" :label="labels.toc" />
