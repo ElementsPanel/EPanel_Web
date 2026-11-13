@@ -18,6 +18,15 @@ export default defineNuxtPlugin((nuxtApp) => {
     theme: {
       // Vuetify 4 的默认值是 'system'，会跟随系统深色模式
       defaultTheme: 'light',
+      themes: {
+        light: {
+          colors: {
+            primary: '#2982FF',
+            background: '#FAFAFA',
+            surface: '#FFFFFF',
+          },
+        },
+      },
     },
   })
 

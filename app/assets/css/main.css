@@ -1,12 +1,12 @@
 :root {
   color-scheme: light;
-  --ink: #17221d;
-  --muted: #66736d;
-  --line: #dfe5e1;
-  --paper: #f7f9f7;
+  --ink: #212121;
+  --muted: #666666;
+  --line: #e0e0e0;
+  --paper: #fafafa;
   --surface: #ffffff;
-  --accent: #1f8a5b;
-  --accent-dark: #12653f;
+  --accent: #2982ff;
+  --accent-dark: #1667c9;
 }
 
 * {
@@ -144,6 +144,76 @@ a {
   line-height: 1.8;
 }
 
+.hero-install {
+  margin-top: 32px;
+  animation: hero-copy-in 700ms 740ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.install-command {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 160ms ease;
+}
+
+.install-command:hover,
+.install-command.is-copied {
+  border-color: var(--accent);
+}
+
+.install-command:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.install-command-text {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--accent-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.install-command-icon.v-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  font-size: 20px;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.install-command:hover .install-command-icon.v-icon,
+.install-command.is-copied .install-command-icon.v-icon {
+  color: var(--accent);
+}
+
+.install-command.is-copied .install-command-icon.v-icon {
+  transform: scale(1.1);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @keyframes hero-copy-in {
   from {
     opacity: 0;
@@ -175,7 +245,7 @@ a {
   border-radius: 8px;
   backface-visibility: hidden;
   background: #242426;
-  box-shadow: 0 24px 64px rgba(23, 34, 29, 0.12);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
   transform-origin: center bottom;
 }
 
@@ -657,8 +727,21 @@ a {
     font-size: 16px;
   }
 
+  .hero-install {
+    margin-top: 28px;
+  }
+
+  .install-command {
+    gap: 10px;
+    padding: 8px 10px 8px 14px;
+  }
+
+  .install-command-text {
+    font-size: 13px;
+  }
+
   .hero-preview {
-    box-shadow: 0 16px 40px rgba(23, 34, 29, 0.1);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   }
 
   .plugin-inner {
@@ -694,8 +777,14 @@ a {
 
   .hero-copy h1,
   .hero-description,
+  .hero-install,
   .hero-preview {
     animation: none;
+  }
+
+  .install-command,
+  .install-command-icon.v-icon {
+    transition: none;
   }
 
   *,
