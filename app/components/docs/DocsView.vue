@@ -57,9 +57,10 @@ const pageSlug = computed(() => {
     : getLocalizedDocsSlug(slug.value, language.value, treeData.value?.tree ?? [])
 })
 
-const { data: page } = await useFetch<DocsPage | null>(
+const { data: page, status: pageStatus } = await useFetch<DocsPage | null>(
   () => `/api/docs/page?slug=${encodeURIComponent(pageSlug.value)}`,
 )
+const isPageLoading = computed(() => pageStatus.value === 'pending')
 
 // 浏览器前进/后退到另一种语言的深链时，同步全站语言。
 watch(slug, (value) => {
@@ -105,7 +106,7 @@ function formatUpdatedAt(value: string): string {
         <p v-else class="docs-sidebar-empty">{{ labels.noDocuments }}</p>
       </aside>
 
-      <div class="docs-main">
+      <div class="docs-main" :class="{ 'is-loading': isPageLoading }">
         <article v-if="page" class="docs-article">
           <header class="docs-header">
             <h1 class="docs-title">{{ page.title }}</h1>

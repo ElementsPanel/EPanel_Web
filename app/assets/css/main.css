@@ -367,6 +367,11 @@ a {
 
 .docs-main {
   min-width: 0;
+  transition: opacity 200ms ease;
+}
+
+.docs-main.is-loading {
+  opacity: 0;
 }
 
 .docs-header {
@@ -515,6 +520,14 @@ a {
 
 .doc-body > *:first-child {
   margin-top: 0;
+}
+
+/* 正文第一行就是标题时，`.docs-header` 的下边线已经分隔了标题与正文，
+   标题自己的上边线和 padding 会叠出第二条线 */
+.doc-body > h2:first-child,
+.doc-body > :first-child > h2:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .doc-body h2,
@@ -769,6 +782,10 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .site-header.v-toolbar {
+    transition: none;
+  }
+
+  .docs-main {
     transition: none;
   }
 
