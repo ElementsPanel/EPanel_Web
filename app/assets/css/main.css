@@ -35,8 +35,8 @@ a {
   margin-inline: auto;
 }
 
-/* 页眉页脚的结构与外观由 Vuetify 的 v-app-bar / v-footer 提供，
-   此处只保留品牌锁排、容器对齐以及 flex 布局链路所需的样式。 */
+/* Vuetify's v-app-bar / v-footer provide the header and footer chrome;
+   only brand lockup, container alignment and the flex chain live here. */
 .header-inner,
 .footer-inner {
   display: flex;
@@ -82,8 +82,8 @@ a {
   background-color: transparent;
 }
 
-/* v-footer 自带 padding: 8px 16px 与 flex: 1 1 auto，
-   前者会破坏与正文的 1180px 对齐，后者会抢走 .site-main 的伸展空间 */
+/* v-footer ships with padding: 8px 16px and flex: 1 1 auto — the former
+   breaks the 1180px alignment, the latter steals .site-main's stretching room */
 .site-footer.v-footer {
   position: relative;
   display: flex;
@@ -326,7 +326,7 @@ a {
   white-space: nowrap;
 }
 
-/* ---------------------------------- 文档站 --------------------------------- */
+/* --------------------------------- Docs site -------------------------------- */
 
 .docs {
   flex: 1;
@@ -496,7 +496,7 @@ a {
   font-weight: 500;
 }
 
-/* --------------------------------- 目录 TOC --------------------------------- */
+/* ----------------------------------- TOC ----------------------------------- */
 
 .docs-toc {
   position: sticky;
@@ -510,7 +510,7 @@ a {
   font-size: 13px;
 }
 
-/* ----------------------- Markdown 正文（doc-body） ----------------------- */
+/* ----------------------- Markdown body (doc-body) ----------------------- */
 
 .doc-body {
   color: var(--ink);
@@ -522,8 +522,8 @@ a {
   margin-top: 0;
 }
 
-/* 正文第一行就是标题时，`.docs-header` 的下边线已经分隔了标题与正文，
-   标题自己的上边线和 padding 会叠出第二条线 */
+/* When the body opens with a heading, .docs-header already draws the rule
+   above it; the heading's own border and padding would add a second one */
 .doc-body > h2:first-child,
 .doc-body > :first-child > h2:first-child {
   padding-top: 0;

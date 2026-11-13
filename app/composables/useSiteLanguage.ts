@@ -22,7 +22,7 @@ export function useSiteLanguage() {
   const language = useState<DocsLanguage>('site-language', () => routeLanguage
     ?? (isDocsLanguage(languageCookie.value) ? languageCookie.value : 'zh'))
 
-  // 直接打开带语言的文档深链时，URL 是该次访问的明确语言选择。
+  // A deep link that carries a language is an explicit choice for this visit.
   if (routeLanguage) {
     language.value = routeLanguage
     if (languageCookie.value !== routeLanguage) {

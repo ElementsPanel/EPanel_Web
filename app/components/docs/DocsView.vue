@@ -62,7 +62,7 @@ const { data: page, status: pageStatus } = await useFetch<DocsPage | null>(
 )
 const isPageLoading = computed(() => pageStatus.value === 'pending')
 
-// 浏览器前进/后退到另一种语言的深链时，同步全站语言。
+// Back/forward into a deep link of the other language keeps the site language in sync.
 watch(slug, (value) => {
   const routeLanguage = getDocsLanguage(value)
   if (routeLanguage && routeLanguage !== language.value) {
@@ -70,12 +70,12 @@ watch(slug, (value) => {
   }
 }, { immediate: true, flush: 'sync' })
 
-// 顶栏切换语言时，尽量跳到当前文档的对应译文。
+// Switching language from the header jumps to the translated page when one exists.
 watch(language, async (value) => {
   if (getDocsLanguage(slug.value) === value) return
 
   const target = getLocalizedDocsSlug(pageSlug.value, value, treeData.value?.tree ?? [])
-  // 译文的标题锚点可能不同，切换时从新页面顶部开始阅读。
+  // Translated headings use different anchors, so start from the top of the new page.
   await navigateTo(docsPath(target))
 })
 
@@ -86,7 +86,7 @@ useSeoMeta({
   description: () => labels.value.description,
 })
 
-// 服务端与浏览器时区不同会导致 hydration 不一致，统一按 UTC 输出日期
+// Server and browser time zones differ and break hydration; always format in UTC.
 function formatUpdatedAt(value: string): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)

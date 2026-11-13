@@ -2,8 +2,8 @@ import { getDocsConfig } from '../utils/docs/config'
 import { invalidateDocsCache } from '../utils/docs/store'
 import { syncWiki } from '../utils/docs/sync'
 
-// 生产环境每次 server 重启都会执行；dev 下 nitro 重启也会重新执行，
-// 因此用全局标记避免重复注册定时器。
+// Runs on every server restart in production, and again when nitro restarts in
+// dev, so a global flag prevents the timer from being registered twice.
 const TIMER_KEY = Symbol.for('epanel.docs.syncTimer')
 
 interface TimerRegistry {
@@ -32,17 +32,17 @@ async function refreshDocs(): Promise<void> {
 export default defineNitroPlugin((nitroApp) => {
   const { syncInterval, repo } = getDocsConfig()
 
-  // 启动时预热：首次请求到来前就已经拉到本地
+  // Warm up on boot so the repo is already local before the first request
   void refreshDocs()
 
-  // HMR 重新加载本插件时，先停掉上一轮遗留的定时器
+  // Drop the timer left behind by the previous load when HMR reloads this plugin
   clearInterval(registry[TIMER_KEY])
 
   const timer = setInterval(() => {
     void refreshDocs()
   }, syncInterval)
 
-  // 不阻止进程退出
+  // Do not keep the process alive
   timer.unref?.()
   registry[TIMER_KEY] = timer
 

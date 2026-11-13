@@ -10,19 +10,19 @@ export interface DocsSnapshot {
   head: string
   updatedAt: string
   tree: DocsNavNode[]
-  /** 深度优先的阅读顺序 */
+  /** Depth-first reading order */
   pages: DocsPageMeta[]
-  /** 仓库文件路径（小写、无扩展名）→ slug，供链接重写使用 */
+  /** Repo file path (lowercase, no extension) → slug, used for link rewriting */
   slugByFile: Record<string, string>
 }
 
 const SNAPSHOT_KEY = 'snapshot'
 
-// 页面缓存带上 head：拉取到新提交后旧 key 自然失效，
-// 不会被上一版本尚未渲染完的结果回填
+// Page cache keys carry the head, so a new commit invalidates old keys and a
+// still-rendering previous version cannot backfill them
 const pageKey = (head: string, slug: string) => `page:${head}:${slug}`
 
-// useStorage 需要在 nitro 就绪后调用，这里延迟到首次使用时再创建
+// useStorage needs nitro to be ready; create it lazily on first use
 let cache: ReturnType<typeof useStorage> | null = null
 
 function docsCache() {
@@ -30,7 +30,7 @@ function docsCache() {
   return cache
 }
 
-/** 拉取到新提交后清空文档缓存，下一次请求重新构建 */
+/** Clear the docs cache after a new commit so the next request rebuilds */
 export async function invalidateDocsCache(): Promise<void> {
   await docsCache().clear()
 }
@@ -60,7 +60,7 @@ async function buildSnapshot(): Promise<DocsSnapshot> {
   }
 }
 
-// 并发请求可能同时进入构建，共用同一个 Promise 保证只解析一次
+// Concurrent requests may all start a build; one promise parses it only once
 let snapshotInFlight: Promise<DocsSnapshot> | null = null
 
 export async function getDocsSnapshot(): Promise<DocsSnapshot> {
@@ -79,7 +79,7 @@ export async function getDocsSnapshot(): Promise<DocsSnapshot> {
   return snapshot
 }
 
-/** 生成「在 GitHub 上编辑」链接；仓库地址无法解析时返回 null */
+/** Build the "Edit on GitHub" link; null when the repo URL cannot be parsed */
 function buildEditUrl(file: string, config: DocsConfig): string | null {
   const webBase = getWikiWebBase(config.repo)
   if (!webBase) return null
@@ -110,7 +110,7 @@ export async function getDocPage(slug: string): Promise<DocsPage | null> {
     slugByFile: snapshot.slugByFile,
   })
 
-  // 阅读顺序只包含当前语言，避免最后一篇跳进另一种语言的目录。
+  // Reading order stays within the current language, so the last page never jumps to the other one.
   const language = getDocsLanguage(meta.slug)
   const localizedPages = snapshot.pages.filter(page => getDocsLanguage(page.slug) === language)
   const localizedIndex = localizedPages.findIndex(page => page.slug === slug)

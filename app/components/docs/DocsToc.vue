@@ -14,13 +14,13 @@ function updateActiveHeading() {
   frame = null
   let current = headings[0]
 
-  // 与正文标题的 scroll-margin-top 保持一致，避开固定顶栏。
+  // Match the scroll-margin-top on headings so the fixed header is cleared.
   for (const heading of headings) {
     if (heading.getBoundingClientRect().top > 97) break
     current = heading
   }
 
-  // 页面底部的短分节可能无法滚到顶栏下方，也需要能够高亮。
+  // Short sections at the very bottom never reach the header, still need a highlight.
   if (window.scrollY > 0
     && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
     current = headings.at(-1)

@@ -13,7 +13,7 @@ type ExecFileAsync = (
   options: { timeout: number, maxBuffer: number, encoding: BufferEncoding },
 ) => Promise<{ stdout: string, stderr: string }>
 
-// promisify 无法正确推导 execFile 的 overload，这里显式收缩签名
+// promisify cannot infer execFile's overloads, so narrow the signature explicitly
 const execFileAsync = promisify(execFile) as unknown as ExecFileAsync
 
 async function git(args: string[]): Promise<string> {
@@ -52,7 +52,7 @@ async function hasGitRepo(dir: string): Promise<boolean> {
   }
 }
 
-/** 返回当前 HEAD，仓库不存在或不可用时返回 null */
+/** Current HEAD, or null when the repo is missing or unusable */
 export async function readHead(config: DocsConfig): Promise<string | null> {
   try {
     return await git(['-C', config.dir, 'rev-parse', 'HEAD'])
@@ -62,7 +62,7 @@ export async function readHead(config: DocsConfig): Promise<string | null> {
   }
 }
 
-/** 返回 HEAD 提交的 ISO 时间 */
+/** ISO time of the HEAD commit */
 export async function readHeadDate(config: DocsConfig): Promise<string | null> {
   try {
     return await git(['-C', config.dir, 'log', '-1', '--format=%cI']) || null
@@ -73,8 +73,8 @@ export async function readHeadDate(config: DocsConfig): Promise<string | null> {
 }
 
 /**
- * GitHub wiki 的默认分支可能是 master 也可能是 main，
- * 因此按「配置的分支优先，再退回 master/main」的顺序尝试。
+ * A GitHub wiki may default to master or main, so try the configured
+ * branch first, then fall back to master/main.
  */
 function branchCandidates(branch: string): string[] {
   return [...new Set([branch, 'master', 'main'])].filter(Boolean)
@@ -97,7 +97,7 @@ async function cloneRepo(config: DocsConfig): Promise<void> {
       return
     }
     catch (error) {
-      // 清理半成品目录，否则下次会被误判为「仓库已就绪」
+      // Remove the half-cloned directory, otherwise the next run sees it as ready
       await rm(config.dir, { recursive: true, force: true })
       failure = error
     }
@@ -116,25 +116,24 @@ async function pullRepo(config: DocsConfig): Promise<void> {
     await git(['-C', config.dir, 'remote', 'set-url', 'origin', config.repo])
   }
 
-  // clone 时可能因为 master 不存在而退回到 main 之类的分支，
-  // 因此以本地实际检出的分支为准，否则每次定时拉取都会打到不存在的分支上。
+  // The clone may have fallen back to main when master was missing, so trust
+  // the branch actually checked out — otherwise every sync hits a missing branch.
   const branch = await git(['-C', config.dir, 'rev-parse', '--abbrev-ref', 'HEAD']).catch(() => '')
   const tracked = branch && branch !== 'HEAD' ? branch : config.branch
 
-  // --depth 1 的浅克隆只保留单分支历史，这里同样只追踪这一个分支
+  // A --depth 1 shallow clone only carries one branch, so track that one as well
   await git(['-C', config.dir, 'fetch', '--depth', '1', 'origin', tracked])
-  // 本地镜像只读；reset --hard 让工作区与远端完全一致，
-  // 上游删除的文件也会随之消失，不会产生残留。
+  // The local mirror is read-only; reset --hard makes it match the remote exactly,
+  // so files deleted upstream disappear too instead of lingering.
   await git(['-C', config.dir, 'reset', '--hard', `origin/${tracked}`])
 }
 
 export interface SyncResult {
-  /** 本次是否拉到了新的提交 */
   updated: boolean
   head: string
 }
 
-// 定时触发与首次预热可能重叠，用同一个 Promise 保证串行执行
+// Scheduled syncs can overlap with the first warm-up; one promise keeps them serial
 let inFlight: Promise<SyncResult> | null = null
 
 export function syncWiki(): Promise<SyncResult> {
@@ -165,7 +164,7 @@ async function performSync(): Promise<SyncResult> {
   }
 }
 
-/** 仓库尚未克隆就收到了请求时，先补齐一次克隆 */
+/** A request arrived before the repo was cloned — clone once up front */
 export async function ensureRepoReady(): Promise<void> {
   const config = getDocsConfig()
   if (await hasGitRepo(config.dir)) return

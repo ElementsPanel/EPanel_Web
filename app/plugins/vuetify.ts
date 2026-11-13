@@ -8,7 +8,7 @@ import { createVuetify } from 'vuetify'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const vuetify = createVuetify({
-    // Nuxt 使用 SSR，Vue 无法自动探测，必须显式开启
+    // Nuxt uses SSR; Vue cannot detect that automatically, so enable it explicitly
     ssr: true,
     defaults: {
       VBtn: {
@@ -16,7 +16,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       },
     },
     theme: {
-      // Vuetify 4 的默认值是 'system'，会跟随系统深色模式
+      // Vuetify 4 defaults to 'system', which follows the OS dark mode
       defaultTheme: 'light',
       themes: {
         light: {

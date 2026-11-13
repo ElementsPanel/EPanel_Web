@@ -16,34 +16,34 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [
-      // vite-plugin-vuetify 的插件类型与 Nuxt 的 Vite 插件类型不完全兼容
+      // vite-plugin-vuetify's plugin type is not fully compatible with Nuxt's Vite plugin type
       // @ts-expect-error
       vuetify({ autoImport: true }),
     ],
     server: {
       watch: {
-        // .data/wiki 由后端定时拉取改写，不要让这些文件触发热更新
+        // .data/wiki is rewritten by the scheduled sync; keep it out of HMR
         ignored: ['**/.data/**'],
       },
     },
   },
 
-  // 文档来自 GitHub Wiki，在服务端拉取并缓存。
-  // 全部为私有配置，不会下发到浏览器；可用 NUXT_WIKI_* 环境变量覆盖。
+  // Docs live in a GitHub Wiki, fetched and cached server-side.
+  // All values are private (never shipped to the browser); override with NUXT_WIKI_* env vars.
   runtimeConfig: {
     wiki: {
       repo: 'https://github.com/ElementsPanel/ElementsPanel.wiki.git',
       branch: 'master',
-      // 相对项目根目录，已在 .gitignore 中忽略
+      // Relative to the project root, ignored by .gitignore
       dir: '.data/wiki',
-      // 定时拉取间隔（毫秒）
+      // Sync interval in milliseconds
       syncInterval: 15 * 60 * 1000,
     },
   },
 
   nitro: {
     storage: {
-      // 文档专用缓存挂载点，读取方式见 server/utils/docs/store.ts
+      // Dedicated cache mount for docs; see server/utils/docs/store.ts
       docs: {
         driver: 'memory',
       },

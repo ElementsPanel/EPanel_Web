@@ -3,8 +3,8 @@ import { join, relative, sep } from 'node:path'
 import type { DocsConfig } from './config'
 
 /**
- * GitHub wiki 允许同一个仓库里混用多种标记语言，
- * 因此支持的扩展名按格式归类。
+ * A GitHub wiki may mix several markup languages in one repo,
+ * so supported extensions are grouped by format.
  */
 export type DocFormat = 'markdown' | 'asciidoc'
 
@@ -18,12 +18,12 @@ const DOC_EXTENSIONS: Record<string, DocFormat> = {
   '.asc': 'asciidoc',
 }
 
-/** GitHub wiki 的保留文件，不作为文档页面 */
+/** Reserved GitHub wiki files, never rendered as doc pages */
 function isReserved(name: string): boolean {
   return name.startsWith('_') || name.startsWith('.')
 }
 
-/** 判断文件是否属于支持的文档格式 */
+/** Whether the file is a supported doc format */
 export function getDocFormat(file: string): DocFormat | null {
   const dot = file.lastIndexOf('.')
   if (dot === -1) return null
@@ -31,14 +31,14 @@ export function getDocFormat(file: string): DocFormat | null {
   return DOC_EXTENSIONS[file.slice(dot).toLowerCase()] ?? null
 }
 
-/** 去掉文档扩展名，非文档文件原样返回 */
+/** Strip the doc extension; non-doc files come back untouched */
 export function stripDocExtension(file: string): string {
   if (!getDocFormat(file)) return file
 
   return file.slice(0, file.lastIndexOf('.'))
 }
 
-/** 位于根目录的 Home.* 对应文档首页 */
+/** A root-level Home.* maps to the docs home page */
 function isHomeRoot(file: string): boolean {
   if (getDocFormat(file) === null) return false
   if (file.includes('/')) return false
@@ -47,8 +47,9 @@ function isHomeRoot(file: string): boolean {
 }
 
 /**
- * URL 片段：保留 ASCII 字母数字与中日韩字符，其余折叠为连字符。
- * 中文 wiki 的标题需要保留原文，替换成拼音会丢失信息。
+ * URL segment: keeps ASCII alphanumerics and CJK characters, folds the rest
+ * into hyphens. Chinese wiki titles keep their original text — turning them
+ * into pinyin would lose information.
  */
 export function slugifySegment(segment: string): string {
   const slug = segment
@@ -59,11 +60,11 @@ export function slugifySegment(segment: string): string {
     .replace(/-{2,}/g, '-')
     .replace(/^-+|-+$/g, '')
 
-  // 全标点文件名会被清空，退回 URI 编码保证链接不为空
+  // An all-punctuation name collapses to empty; fall back to URI encoding so the link stays valid
   return slug || encodeURIComponent(segment.trim().toLowerCase())
 }
 
-/** 把仓库内的文件路径映射成 /docs 下的访问路径，`Home.md` → '' */
+/** Map a repo file path to its /docs route: `Home.md` → '' */
 export function fileToSlug(file: string): string {
   if (isHomeRoot(file)) return ''
 
@@ -73,16 +74,16 @@ export function fileToSlug(file: string): string {
     .join('/')
 }
 
-/** 去掉可能存在 YAML frontmatter（Markdown 专有） */
+/** Strip YAML frontmatter when present (Markdown only) */
 function stripFrontmatter(source: string): string {
   const content = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source
   return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
 }
 
 /**
- * 取出正文首个一级标题作为标题，并把它从正文中移除，
- * 由页面单独渲染标题，避免重复。
- * Markdown 是 `# 标题`，AsciiDoc 是 `= 标题`。
+ * Take the first level-one heading as the title and remove it from the body:
+ * the page renders the title itself, keeping it would duplicate it.
+ * Markdown uses `# Title`, AsciiDoc uses `= Title`.
  */
 export function extractTitle(source: string, format: DocFormat): { title: string | null, body: string } {
   const lines = (format === 'markdown' ? stripFrontmatter(source) : source).split(/\r?\n/)
@@ -94,7 +95,7 @@ export function extractTitle(source: string, format: DocFormat): { title: string
   for (const [index, line] of lines.entries()) {
     const trimmed = line.trim()
 
-    // 空行，以及 AsciiDoc 开头的属性行与注释，都不算作正文首行
+    // Blank lines, plus leading AsciiDoc attributes and comments, are not body lines
     if (trimmed === '') continue
     if (format === 'asciidoc' && (trimmed.startsWith(':') || trimmed.startsWith('//'))) continue
 
@@ -104,11 +105,11 @@ export function extractTitle(source: string, format: DocFormat): { title: string
       titleIndex = index
     }
 
-    // 只有首个有效行可能是文档标题，之后不再寻找
+    // Only the first meaningful line can be the title; stop looking after it
     break
   }
 
-  // 只摘掉标题行本身，其余内容（含 AsciiDoc 属性行）原样保留
+  // Drop only the title line; everything else (AsciiDoc attributes included) stays
   const body = titleIndex === -1
     ? lines.join('\n')
     : [...lines.slice(0, titleIndex), ...lines.slice(titleIndex + 1)].join('\n')
@@ -117,8 +118,8 @@ export function extractTitle(source: string, format: DocFormat): { title: string
 }
 
 /**
- * 读取文档显式声明的导航顺序。
- * Markdown 使用 YAML frontmatter，AsciiDoc 使用文档属性。
+ * Read the nav order a doc declares explicitly.
+ * Markdown uses YAML frontmatter, AsciiDoc uses document attributes.
  */
 export function extractNavOrder(source: string, format: DocFormat): number | undefined {
   const content = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source
@@ -133,13 +134,13 @@ export function extractNavOrder(source: string, format: DocFormat): number | und
   return Number.isSafeInteger(value) && value >= 0 ? value : undefined
 }
 
-/** 标题缺失时的兜底：`getting-started` → `Getting started` */
+/** Fallback when the title is missing: `getting-started` → `Getting started` */
 export function humanize(name: string): string {
   const words = name.replace(/[-_]+/g, ' ').trim()
   return words === '' ? name : words.replace(/^\w/, char => char.toUpperCase())
 }
 
-/** 递归收集受支持的文档文件，忽略 `_` 前缀目录/文件与隐藏目录 */
+/** Collect doc files recursively, skipping `_`-prefixed and hidden entries */
 export async function collectDocFiles(root: string): Promise<string[]> {
   const files: string[] = []
 
@@ -170,7 +171,7 @@ export interface DocsSourceEntry {
   format: DocFormat
 }
 
-/** 扫描克隆目录，产出带标题的文档清单 */
+/** Scan the cloned directory into a list of docs with titles */
 export async function readWikiEntries(config: DocsConfig): Promise<DocsSourceEntry[]> {
   const files = await collectDocFiles(config.dir)
   const entries: DocsSourceEntry[] = []
@@ -195,7 +196,7 @@ export async function readWikiEntries(config: DocsConfig): Promise<DocsSourceEnt
   return entries
 }
 
-/** 内容排序：手动顺序优先，未声明时再按目录和标题稳定排序。 */
+/** Sort by explicit order first, then a stable folder/title order */
 function compareNodes(a: DocsNavNode, b: DocsNavNode): number {
   const orderDiff = (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER)
   if (orderDiff !== 0) return orderDiff
@@ -207,12 +208,12 @@ function compareNodes(a: DocsNavNode, b: DocsNavNode): number {
   return a.title.localeCompare(b.title, 'zh-Hans-CN')
 }
 
-/** 由扁平清单构建侧边栏树，同时返回深度优先顺序用于上下篇 */
+/** Build the sidebar tree from the flat list; DFS order drives prev/next */
 export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
   const root: DocsNavNode[] = []
 
   for (const entry of entries) {
-    // 位于根目录的 Home.* 保留为根级入口。
+    // A root-level Home.* stays as a root entry.
     if (entry.slug === '') {
       root.push({ slug: '', title: entry.title, order: entry.order, file: entry.file, children: [] })
       continue
@@ -242,7 +243,7 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
         node.order = entry.order
       }
       else if (entry.order !== undefined && (node.order === undefined || entry.order < node.order)) {
-        // 目录沿用其最早子页顺序，使嵌套导航也能手动排列。
+        // Folders inherit the earliest child order so nested nav stays hand-orderable.
         node.order = entry.order
       }
 
@@ -259,7 +260,7 @@ export function buildNavTree(entries: DocsSourceEntry[]): DocsNavNode[] {
   return root
 }
 
-/** 按深度优先展开树，得到线性阅读顺序 */
+/** Flatten the tree depth-first into linear reading order */
 export function flattenTree(tree: DocsNavNode[]): DocsNavNode[] {
   const flat: DocsNavNode[] = []
 

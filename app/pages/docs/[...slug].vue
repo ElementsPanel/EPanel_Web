@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// key: false 使用静态页面 key，文档间切换时复用同一页面实例，
-// 避免触发整页过渡与组件重挂载；内容区的加载淡出由 DocsView 自己处理
+// key: false keeps a static page key so switching docs reuses the same instance,
+// skipping the page transition and remount; DocsView fades its own content instead
 definePageMeta({ key: false })
 </script>
 

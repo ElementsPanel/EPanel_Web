@@ -1,13 +1,12 @@
 import { resolve } from 'node:path'
 
 export interface DocsConfig {
-  /** 远端 wiki 仓库地址 */
+  /** Remote wiki repository URL */
   repo: string
-  /** 远端分支 */
   branch: string
-  /** 本地镜像目录绝对路径 */
+  /** Absolute path of the local mirror directory */
   dir: string
-  /** 定时拉取间隔（毫秒） */
+  /** Sync interval in milliseconds */
   syncInterval: number
 }
 
@@ -23,8 +22,8 @@ export function getDocsConfig(): DocsConfig {
 }
 
 /**
- * 从 `https://github.com/OWNER/REPO.wiki.git`（或 SSH 形式）解析出
- * GitHub Wiki 的网页地址，用于生成「在 GitHub 上编辑」链接。
+ * Parses `https://github.com/OWNER/REPO.wiki.git` (or the SSH form) into the
+ * GitHub Wiki web URL used for the "Edit on GitHub" link.
  */
 export function getWikiWebBase(repo: string): string | null {
   const raw = repo.trim()

@@ -3,9 +3,9 @@ import MarkdownIt from 'markdown-it'
 import { stripDocExtension, type DocFormat } from './source'
 
 export interface RenderContext {
-  /** 当前正在渲染的文件相对路径，用于解析相对链接 */
+  /** Path of the file being rendered, used to resolve relative links */
   currentFile: string
-  /** 仓库文件路径（小写、无扩展名）→ 文档 slug */
+  /** Repo file path (lowercase, no extension) → doc slug */
   slugByFile: Record<string, string>
 }
 
@@ -15,8 +15,9 @@ export interface RenderedDoc {
 }
 
 /**
- * 只声明真正用到的 token 结构，避免依赖 @types/markdown-it 的内部模块路径。
- * 结合下方 Renderer.rules 的一次性断言，typecheck 不受 types 包版本影响。
+ * Declares only the token shapes actually used, avoiding @types/markdown-it
+ * internal module paths. Together with the one-off Renderer.rules cast below,
+ * typecheck no longer depends on the types package version.
  */
 interface MdToken {
   type: string
@@ -44,7 +45,7 @@ function parentDir(file: string): string {
   return index === -1 ? '' : file.slice(0, index)
 }
 
-/** 归一化相对路径：去掉 `.` / `..` 与多余斜杠 */
+/** Normalize a relative path: drop `.` / `..` and duplicate slashes */
 function normalizePath(value: string): string {
   const segments: string[] = []
 
@@ -57,17 +58,18 @@ function normalizePath(value: string): string {
   return segments.join('/')
 }
 
-/** 把内部链接目标解析成文档 slug，命中不了返回 undefined */
+/** Resolve an internal link target to a doc slug; undefined when it misses */
 function lookupSlug(target: string, context: RenderContext): string | undefined {
-  // 必须同时剥掉 .md 与 .adoc 等扩展名，否则跨格式的链接永远匹配不上
+  // Strip .md and .adoc alike, otherwise cross-format links never match
   const withoutExtension = stripDocExtension(target.split('?')[0]!.split('#')[0]!)
   return context.slugByFile[normalizePath(withoutExtension).toLowerCase()]
 }
 
 /**
- * 重写文档内部链接。
- * wiki 中的 `Foo.md`、`../Bar.md`、`/Guide/Setup.md` 都应指向站内文档页，
- * 保留原有 fragment 拼到新地址上；锚点与外部链接保持原样。
+ * Rewrites internal doc links.
+ * `Foo.md`, `../Bar.md` and `/Guide/Setup.md` from the wiki all map to
+ * in-site doc pages, keeping the original fragment; anchors and external
+ * links are left untouched.
  */
 function mapHref(href: string, context: RenderContext): string | null {
   const raw = href.trim()
@@ -79,7 +81,7 @@ function mapHref(href: string, context: RenderContext): string | null {
   const pathPart = hashIndex >= 0 ? raw.slice(0, hashIndex) : raw
   const fragment = hashIndex >= 0 ? raw.slice(hashIndex) : ''
 
-  // 先按「相对当前文件」解析，再退回到「相对仓库根目录」
+  // Resolve against the current file first, then fall back to the repo root
   const parent = parentDir(context.currentFile)
   const relativeTarget = parent === '' ? pathPart : `${parent}/${pathPart}`
 
@@ -89,7 +91,7 @@ function mapHref(href: string, context: RenderContext): string | null {
   return slug === '' ? `/docs${fragment}` : `/docs/${slug}${fragment}`
 }
 
-/** 标题 anchor：保留中英文与数字，其余折叠为连字符 */
+/** Heading anchor: keeps letters, digits and CJK, folds the rest into hyphens */
 function anchorId(text: string, used: Map<string, number>): string {
   const base = text
     .trim()
@@ -105,7 +107,7 @@ function anchorId(text: string, used: Map<string, number>): string {
   return count === 0 ? base : `${base}-${count}`
 }
 
-/** 取标题 inline token 的纯文本，跳过链接标记等语法符号 */
+/** Plain text of a heading inline token, skipping link markers and other syntax */
 function inlineText(token: MdToken | undefined): string {
   if (!token || token.type !== 'inline' || !token.children) return ''
 
@@ -117,13 +119,13 @@ function inlineText(token: MdToken | undefined): string {
 }
 
 /**
- * 渲染单篇文档。
- * 每次渲染新建实例：标题 anchor 去重需要独立状态，
- * 链接重写也依赖当前文件路径。
+ * Renders a single doc.
+ * A fresh instance per render: anchor de-duplication needs its own state,
+ * and link rewriting depends on the current file path.
  */
 export function renderMarkdown(source: string, context: RenderContext): RenderedDoc {
   const md = new MarkdownIt({
-    // 关闭原始 HTML 通道，配合 markdown-it 自身的转义避免 XSS
+    // Disable raw HTML; markdown-it escaping then blocks XSS
     html: false,
     linkify: true,
     typographer: false,
@@ -163,7 +165,7 @@ export function renderMarkdown(source: string, context: RenderContext): Rendered
   return { html: md.render(source), toc }
 }
 
-/** 还原 HTML 属性里最常见的实体，便于按原样匹配链接目标 */
+/** Decode the commonest entities in HTML attributes so link targets match as-is */
 function decodeHtmlEntities(value: string): string {
   return value
     .replace(/&amp;/g, '&')
@@ -178,8 +180,8 @@ function escapeHtmlAttribute(value: string): string {
 }
 
 /**
- * AsciiDoc 走的是 asciidoctor 直接产出 HTML，
- * 无法像 markdown-it 那样挂钩 token，只能对生成结果的 href 做改写。
+ * AsciiDoc goes through asciidoctor, which emits HTML directly — there is no
+ * token hook like markdown-it, so hrefs are rewritten on the output instead.
  */
 function rewriteHtmlHrefs(html: string, context: RenderContext): string {
   return html.replace(/\shref="([^"]*)"/g, (match, rawHref: string) => {
@@ -190,7 +192,7 @@ function rewriteHtmlHrefs(html: string, context: RenderContext): string {
   })
 }
 
-/** asciidoctor 在 standalone: false 下自动生成 `<h2 id="...">` */
+/** With standalone: false, asciidoctor emits `<h2 id="...">` itself */
 const HTML_HEADING_RE = /<h([2-4])\b([^>]*)>([\s\S]*?)<\/h\1>/gi
 
 function extractTocFromHtml(html: string): DocsTocEntry[] {
@@ -210,12 +212,12 @@ function extractTocFromHtml(html: string): DocsTocEntry[] {
 
 async function renderAsciidoc(source: string, context: RenderContext): Promise<RenderedDoc> {
   const converted = await convert(source, {
-    // 只要正文片段，不要 <html>/<head> 包裹
+    // Body fragment only, no <html>/<head> wrapper
     standalone: false,
-    // 文档来自远端仓库，禁用 include 等访问本地资源的能力
+    // Docs come from a remote repo; block include and local resource access
     safe: 'secure',
     attributes: {
-      // 为小节生成 id，供目录锚点使用
+      // Generate section ids so the TOC can link to them
       sectids: 'true',
     },
   })
@@ -228,7 +230,7 @@ async function renderAsciidoc(source: string, context: RenderContext): Promise<R
   }
 }
 
-/** 按文件格式选择渲染器；asciidoctor 的 convert 是异步的 */
+/** Pick a renderer per format; asciidoctor's convert is async */
 export function renderDoc(source: string, format: DocFormat, context: RenderContext): Promise<RenderedDoc> | RenderedDoc {
   if (format === 'asciidoc') return renderAsciidoc(source, context)
 

@@ -1,8 +1,8 @@
 import { getDocPage } from '../../utils/docs/store'
 
 /**
- * 单篇文档内容（已渲染好的 HTML）。
- * slug 为空表示首页 Home.md。
+ * A single doc body, already rendered to HTML.
+ * An empty slug means the home page, Home.md.
  */
 export default defineEventHandler(async (event): Promise<DocsPage> => {
   const slug = normalizeSlug(getQuery(event).slug)

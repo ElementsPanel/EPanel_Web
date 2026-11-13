@@ -1,8 +1,8 @@
 import { getDocsSnapshot } from '../../utils/docs/store'
 
 /**
- * 侧边栏导航树。命中 snapshot 缓存时不读磁盘，
- * 只有拉取到新提交后才会重建。
+ * Sidebar navigation tree. A snapshot hit means no disk access;
+ * the tree is rebuilt only after a new commit has been pulled.
  */
 export default defineEventHandler(async (): Promise<DocsTreeResponse> => {
   const snapshot = await getDocsSnapshot()

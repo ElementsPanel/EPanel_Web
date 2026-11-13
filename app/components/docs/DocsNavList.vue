@@ -27,7 +27,7 @@ function toListItems(nodes: DocsNavNode[]): NavListItem[] {
 const items = computed(() => toListItems(props.nodes))
 const opened = ref<string[]>([])
 
-// 打开深链接所属的分组，随后仍可由用户自由折叠。
+// Expand the group owning the deep link; the user can still collapse it afterwards.
 watch(() => props.activeSlug, (slug) => {
   const parts = slug.split('/')
   opened.value = parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join('/'))
@@ -35,7 +35,6 @@ watch(() => props.activeSlug, (slug) => {
 </script>
 
 <template>
-  <!-- Vuetify 根据 children 递归生成 v-list-group / v-list-item。 -->
   <v-list
     v-model:opened="opened"
     class="docs-nav-list"

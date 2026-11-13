@@ -13,7 +13,7 @@ export function docsPath(slug: string): string {
   return slug === '' ? '/docs' : `/docs/${slug}`
 }
 
-/** 隐去语言目录本身，只展示所选版本的页面。 */
+/** Drops the language directory itself so only the selected version is shown. */
 export function getLocalizedDocsTree(tree: DocsNavNode[], language: DocsLanguage): DocsNavNode[] {
   return tree.find(node => node.slug === language)?.children ?? []
 }
@@ -22,7 +22,7 @@ function collectPageSlugs(nodes: DocsNavNode[]): string[] {
   return nodes.flatMap(node => node.children.length > 0 ? collectPageSlugs(node.children) : [node.slug])
 }
 
-/** 同名路径对应译文；译文缺失时回到目标语言的入门页。 */
+/** Same path in the other language; falls back to that language's entry page. */
 export function getLocalizedDocsSlug(slug: string, language: DocsLanguage, tree: DocsNavNode[]): string {
   const pages = collectPageSlugs(getLocalizedDocsTree(tree, language))
   const currentLanguage = getDocsLanguage(slug)
