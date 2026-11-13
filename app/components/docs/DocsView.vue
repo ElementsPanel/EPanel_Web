@@ -81,8 +81,8 @@ watch(language, async (value) => {
 
 useSeoMeta({
   title: () => (page.value
-    ? `${page.value.title} · ElementsPanel ${labels.value.documentation}`
-    : `${labels.value.documentation} · ElementsPanel`),
+    ? `${page.value.title} - ElementsPanel`
+    : `${labels.value.documentation} - ElementsPanel`),
   description: () => labels.value.description,
 })
 
