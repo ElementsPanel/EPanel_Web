@@ -92,7 +92,7 @@ a {
   min-height: clamp(240px, 40vw, 480px);
   padding: 0;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--surface);
 }
 
 .site-main {
@@ -247,7 +247,7 @@ a {
   border-radius: 8px;
   backface-visibility: hidden;
   background: #242426;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
   transform-origin: center bottom;
 }
 
@@ -756,7 +756,7 @@ a {
   }
 
   .hero-preview {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
   .plugin-inner {
